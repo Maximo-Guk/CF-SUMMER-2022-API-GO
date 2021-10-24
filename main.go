@@ -62,7 +62,7 @@ func auth(c *fiber.Ctx) error {
 	c.Cookie(cookie)
 
 	numberOfAuthorizations++
-	sumOfAuthorizationTimes += time.Since(startTime).Milliseconds()
+	sumOfAuthorizationTimes += time.Since(startTime).Microseconds()
 
 	return c.SendString(string(publicBytes))
 }
@@ -84,7 +84,7 @@ func verify(c *fiber.Ctx) error {
 	}
 
 	numberOfVerifications++;
-	sumOfVerificationTimes += time.Since(startTime).Milliseconds()
+	sumOfVerificationTimes += time.Since(startTime).Microseconds()
 
 	return c.JSON(fiber.Map{"userName": claims["sub"]})
 }
@@ -97,12 +97,12 @@ func stats(c *fiber.Ctx) error {
 
 	if numberOfVerifications != 0 {
 		numberOfVerificationsString = strconv.FormatInt(numberOfVerifications, 10)
-		averageOfVerificationsString = strconv.FormatInt(sumOfVerificationTimes/numberOfVerifications, 10)+"ms"
+		averageOfVerificationsString = strconv.FormatInt(sumOfVerificationTimes/numberOfVerifications, 10)+"μs"
 	}
 
 	if numberOfAuthorizations != 0 {
 		numberOfAuthorizationsString = strconv.FormatInt(numberOfAuthorizations, 10)
-		averageOfAuthorizationsString = strconv.FormatInt(sumOfAuthorizationTimes/numberOfAuthorizations, 10)+"ms"
+		averageOfAuthorizationsString = strconv.FormatInt(sumOfAuthorizationTimes/numberOfAuthorizations, 10)+"μs"
 	}
 
 	return c.JSON(fiber.Map{
