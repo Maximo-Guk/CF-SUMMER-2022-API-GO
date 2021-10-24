@@ -84,7 +84,7 @@ func verify(c *fiber.Ctx) error {
 	}
 
 	numberOfVerifications++;
-	sumOfAuthorizationTimes += time.Since(startTime).Milliseconds()
+	sumOfVerificationTimes += time.Since(startTime).Milliseconds()
 
 	return c.JSON(fiber.Map{"userName": claims["sub"]})
 }
