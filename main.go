@@ -1,12 +1,10 @@
 package main
 
 import (
-	"encoding/json"
 	"github.com/gofiber/fiber/v2"
 	"github.com/golang-jwt/jwt/v4"
 	"io/ioutil"
 	"log"
-	"net/http"
 	"strconv"
 	"time"
 )
@@ -15,15 +13,6 @@ var numberOfAuthorizations int64 = 0
 var numberOfVerifications int64 = 0
 var sumOfAuthorizationTimes int64 = 0
 var sumOfVerificationTimes int64 = 0
-
-func getUser(userName string) (User, error) {
-	r, err := http.Get("https://ga-api.maximoguk.workers.dev/users/"+userName)
-	b, err := ioutil.ReadAll(r.Body)
-	defer r.Body.Close()
-	var user User
-	err = json.Unmarshal(b, &user)
-	return user, err
-}
 
 func main() {
 	app := fiber.New()
@@ -49,43 +38,33 @@ func fatal(err error) {
 	}
 }
 
-type User struct {
-	Username string
-}
-
 func auth(c *fiber.Ctx) error {
-	res, err := getUser(c.Params("userName"))
-	if res.Username == "" {
-		startTime := time.Now()
-		privateBytes, err := ioutil.ReadFile("private.pem")
-		fatal(err)
-		publicBytes, err := ioutil.ReadFile("public.pem")
-		fatal(err)
-		privateKey, err := jwt.ParseRSAPrivateKeyFromPEM(privateBytes)
-		fatal(err)
+	startTime := time.Now()
+	privateBytes, err := ioutil.ReadFile("private.pem")
+	fatal(err)
+	publicBytes, err := ioutil.ReadFile("public.pem")
+	fatal(err)
+	privateKey, err := jwt.ParseRSAPrivateKeyFromPEM(privateBytes)
+	fatal(err)
 
-		token := jwt.New(jwt.SigningMethodRS256)
-		claims := token.Claims.(jwt.MapClaims)
-		claims["sub"] = c.Params("userName")
-		claims["exp"] = time.Now().Add(time.Hour * 24).Unix()
-		tokenString, err := token.SignedString(privateKey)
-		fatal(err)
+	token := jwt.New(jwt.SigningMethodRS256)
+	claims := token.Claims.(jwt.MapClaims)
+	claims["sub"] = c.Params("userName")
+	claims["exp"] = time.Now().Add(time.Hour * 24).Unix()
+	tokenString, err := token.SignedString(privateKey)
+	fatal(err)
 
-		// Create cookie
-		cookie := new(fiber.Cookie)
-		cookie.Name = "token"
-		cookie.Value = tokenString
-		// Set cookie
-		c.Cookie(cookie)
+	// Create cookie
+	cookie := new(fiber.Cookie)
+	cookie.Name = "token"
+	cookie.Value = tokenString
+	// Set cookie
+	c.Cookie(cookie)
 
-		numberOfAuthorizations++
-		sumOfAuthorizationTimes += time.Since(startTime).Milliseconds()
+	numberOfAuthorizations++
+	sumOfAuthorizationTimes += time.Since(startTime).Milliseconds()
 
-		return c.SendString(string(publicBytes))
-	} else {
-		fatal(err)
-		return c.SendString("Error, username has already been registered")
-	}
+	return c.SendString(string(publicBytes))
 }
 
 func verify(c *fiber.Ctx) error {
