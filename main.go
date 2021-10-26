@@ -47,14 +47,16 @@ func auth(c *fiber.Ctx) error {
 	privateKey, err := jwt.ParseRSAPrivateKeyFromPEM(privateBytes)
 	fatal(err)
 
+	// create new JWT RSA256 Token and add claims to it
 	token := jwt.New(jwt.SigningMethodRS256)
 	claims := token.Claims.(jwt.MapClaims)
 	claims["sub"] = c.Params("userName")
+	// expiration date of 1 day
 	claims["exp"] = time.Now().Add(time.Hour * 24).Unix()
 	tokenString, err := token.SignedString(privateKey)
 	fatal(err)
 
-	// Create cookie
+	// Create jwt cookie
 	cookie := new(fiber.Cookie)
 	cookie.Name = "token"
 	cookie.Value = tokenString
@@ -64,6 +66,7 @@ func auth(c *fiber.Ctx) error {
 	numberOfAuthorizations++
 	sumOfAuthorizationTimes += time.Since(startTime).Microseconds()
 
+	// return public key
 	return c.SendString(string(publicBytes))
 }
 
@@ -76,16 +79,18 @@ func verify(c *fiber.Ctx) error {
 
 	tokenString := c.Cookies("token")
 	claims := jwt.MapClaims{}
+	// parse cookie from request and get claims, verify cookie with public key
 	_, err = jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
 		return publicKey, nil
 	})
 	if err != nil {
-		return c.SendStatus(409)
+		return c.SendStatus(401)
 	}
 
-	numberOfVerifications++;
+	numberOfVerifications++
 	sumOfVerificationTimes += time.Since(startTime).Microseconds()
 
+	// return userName claim
 	return c.JSON(fiber.Map{"userName": claims["sub"]})
 }
 
@@ -95,6 +100,7 @@ func stats(c *fiber.Ctx) error {
 	var numberOfAuthorizationsString = "0"
 	var averageOfAuthorizationsString = "n/a"
 
+	// μs are the unit for microseconds
 	if numberOfVerifications != 0 {
 		numberOfVerificationsString = strconv.FormatInt(numberOfVerifications, 10)
 		averageOfVerificationsString = strconv.FormatInt(sumOfVerificationTimes/numberOfVerifications, 10)+"μs"
