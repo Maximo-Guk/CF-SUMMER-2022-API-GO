@@ -59,6 +59,7 @@ func auth(c *fiber.Ctx) error {
 	// Create jwt cookie
 	cookie := new(fiber.Cookie)
 	cookie.Name = "token"
+	cookie.HTTPOnly = true
 	cookie.Value = tokenString
 	// Set cookie
 	c.Cookie(cookie)
@@ -78,20 +79,27 @@ func verify(c *fiber.Ctx) error {
 	fatal(err)
 
 	tokenString := c.Cookies("token")
+	// check if token exists within cookie
+	if tokenString == "" {
+		c.Status(400)
+		return c.SendString("Token not found in cookie")
+	}
 	claims := jwt.MapClaims{}
 	// parse cookie from request and get claims, verify cookie with public key
 	_, err = jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
 		return publicKey, nil
 	})
+	// if verification fails return 401
 	if err != nil {
-		return c.SendStatus(401)
+		c.Status(401)
+		return c.SendString("Token is invalid")
 	}
 
 	numberOfVerifications++
 	sumOfVerificationTimes += time.Since(startTime).Microseconds()
 
-	// return userName claim
-	return c.JSON(fiber.Map{"userName": claims["sub"]})
+	// return userName claim as string
+	return c.SendString(claims["sub"].(string))
 }
 
 func stats(c *fiber.Ctx) error {

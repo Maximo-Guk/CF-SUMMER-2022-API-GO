@@ -15,4 +15,6 @@ Did you attempt any extra credit? Tell us what you chose
 Yes I attempted all the extra credit that was listed. I also added a few of my own API endpoints on the worker side of things to allow for a voting system and
 a emoticon system for the comment section.
 
+By the way I noticed the systems autograder was saying that it had issues writing my result of 92% to my file, and it wasn't providing any feedback. Not sure if this is intentional!
+
 It was a fun assignment, thank you!
