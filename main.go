@@ -29,7 +29,7 @@ func main() {
 	//readme route
 	app.Get("/README.txt", readme)
 
-	app.Listen(":4000")
+	app.Listen(":80")
 }
 
 func fatal(err error) {
