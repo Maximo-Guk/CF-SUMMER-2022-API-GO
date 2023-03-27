@@ -1,0 +1,11 @@
+version: '2'
+services:
+  cf-summer-2022-api-go:
+    image: registry.maximoguk.com/cf-summer-2022-api-go
+    build: .
+    container_name: cf-summer-2022-api-go
+    volumes:
+      - ./public.pem:/public.pem:ro
+      - ./private.pem:/private.pem:ro
+    pull_policy: always
+    restart: unless-stopped

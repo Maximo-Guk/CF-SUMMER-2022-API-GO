@@ -1,12 +1,13 @@
 package main
 
 import (
-	"github.com/gofiber/fiber/v2"
-	"github.com/golang-jwt/jwt/v4"
-	"io/ioutil"
 	"log"
+	"os"
 	"strconv"
 	"time"
+
+	"github.com/gofiber/fiber/v2"
+	"github.com/golang-jwt/jwt/v4"
 )
 
 var numberOfAuthorizations int64 = 0
@@ -40,9 +41,9 @@ func fatal(err error) {
 
 func auth(c *fiber.Ctx) error {
 	startTime := time.Now()
-	privateBytes, err := ioutil.ReadFile("private.pem")
+	privateBytes, err := os.ReadFile("private.pem")
 	fatal(err)
-	publicBytes, err := ioutil.ReadFile("public.pem")
+	publicBytes, err := os.ReadFile("public.pem")
 	fatal(err)
 	privateKey, err := jwt.ParseRSAPrivateKeyFromPEM(privateBytes)
 	fatal(err)
@@ -73,7 +74,7 @@ func auth(c *fiber.Ctx) error {
 
 func verify(c *fiber.Ctx) error {
 	startTime := time.Now()
-	publicBytes, err := ioutil.ReadFile("public.pem")
+	publicBytes, err := os.ReadFile("public.pem")
 	fatal(err)
 	publicKey, err := jwt.ParseRSAPublicKeyFromPEM(publicBytes)
 	fatal(err)
@@ -111,25 +112,25 @@ func stats(c *fiber.Ctx) error {
 	// μs are the unit for microseconds
 	if numberOfVerifications != 0 {
 		numberOfVerificationsString = strconv.FormatInt(numberOfVerifications, 10)
-		averageOfVerificationsString = strconv.FormatInt(sumOfVerificationTimes/numberOfVerifications, 10)+"μs"
+		averageOfVerificationsString = strconv.FormatInt(sumOfVerificationTimes/numberOfVerifications, 10) + "μs"
 	}
 
 	if numberOfAuthorizations != 0 {
 		numberOfAuthorizationsString = strconv.FormatInt(numberOfAuthorizations, 10)
-		averageOfAuthorizationsString = strconv.FormatInt(sumOfAuthorizationTimes/numberOfAuthorizations, 10)+"μs"
+		averageOfAuthorizationsString = strconv.FormatInt(sumOfAuthorizationTimes/numberOfAuthorizations, 10) + "μs"
 	}
 
 	return c.JSON(fiber.Map{
-		"numberOfVerifications": numberOfVerificationsString,
-		"averageOfVerifications": averageOfVerificationsString,
-		"numberOfAuthorizations": numberOfAuthorizationsString,
+		"numberOfVerifications":   numberOfVerificationsString,
+		"averageOfVerifications":  averageOfVerificationsString,
+		"numberOfAuthorizations":  numberOfAuthorizationsString,
 		"averageOfAuthorizations": averageOfAuthorizationsString,
 	})
 
 }
 
 func readme(c *fiber.Ctx) error {
-	readmeBytes, err := ioutil.ReadFile("README.txt")
+	readmeBytes, err := os.ReadFile("README.txt")
 	fatal(err)
 
 	return c.SendString(string(readmeBytes))
