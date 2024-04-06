@@ -1,5 +1,5 @@
 ## Build
-FROM golang:1.20-bullseye AS build
+FROM golang:1.22-bookworm AS build
 
 WORKDIR /usr/src/app
 
@@ -11,7 +11,7 @@ COPY . .
 RUN go build -v -o /usr/local/bin/app ./...
 
 ## Deploy
-FROM debian:bullseye-slim
+FROM debian:bookworm-slim
 
 WORKDIR /
 COPY --from=build /usr/src/app/README.txt .
